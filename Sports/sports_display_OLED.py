@@ -1070,7 +1070,7 @@ def render_football(screen, game, home, away, league):
     screen.blit(down_distance_surf, (get_center(WIDTH, down_distance_surf.get_width()),
                                      get_center(4 * HEIGHT / 3, down_distance_surf.get_height())))
 
-    ball_spot_surf = sub_font.render(ball_spot, True, (255, 0, 0))
+    ball_spot_surf = sub_font.render(ball_spot, True, (255, 255, 255))
     screen.blit(ball_spot_surf, (get_center(WIDTH, ball_spot_surf.get_width()),
                                  get_center(5 * HEIGHT / 3, ball_spot_surf.get_height())))
 
