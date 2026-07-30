@@ -90,9 +90,11 @@ Changes take effect immediately — no restart needed.
 
 
 Notes
+
 Currently tuned for a 800x480 display; other resolutions will need layout adjustments in the rendering functions.
 Uses ESPN's unofficial public API endpoints, which may change without notice.
 Built and tested for personal, non-commercial use.
+Use sports_display_laptop.py to test implementations. This code does not make the screen fullscreen or hide your cursor, thus making the display easy to use on a laptop/monitor. 
 
 License
 MIT — feel free to fork and adapt for your own setup.
