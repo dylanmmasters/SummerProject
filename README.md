@@ -40,19 +40,19 @@ Flash Raspberry Pi OS (Bullseye or later, with desktop) to your SD card using Ra
 Connect the Hosyond display via the DSI ribbon cable per its included instructions — it's plug-and-play with no display driver installation required.
 
 3. Clone the repo
-git clone https://github.com/<your-username>/pi-sports-ticker.git
-cd pi-sports-ticker
+- git clone https://github.com/<your-username>/pi-sports-ticker.git
+- cd pi-sports-ticker
 
 4. Install dependencies
-sudo apt update && sudo apt install -y python3-pip
-pip3 install pygame flask requests
+- sudo apt update && sudo apt install -y python3-pip
+- pip3 install pygame flask requests
 
 5. Configure your teams
 On first run, the app seeds my_teams.json with a default set of teams.
 You can either edit that file directly or (recommended) launch the app once and use the web dashboard at http://<pi-ip>:5000 to search and add/remove teams visually.
 
 5. Run it
-python3 sports_ticker.py
+- python3 sports_ticker.py
 The display will launch fullscreen, and the web dashboard will be reachable at http://<pi-ip-address>:5000 from any device on the same network.
 
 6. Launch on boot (kiosk mode)
@@ -74,10 +74,11 @@ Restart=on-failure
 WantedBy=graphical.target
 
 Enable it with:
-sudo systemctl enable sports-ticker.service
-sudo systemctl start sports-ticker.service
+- sudo systemctl enable sports-ticker.service
+- sudo systemctl start sports-ticker.service
 
 Now the Pi boots straight into the live ticker, no login required.
+The live ticker can be closed by clicking the top-right corner of the screen. 
 
 Managing Teams
 Visit http://<pi-ip>:5000 from your phone or computer to:
@@ -87,13 +88,6 @@ Visit http://<pi-ip>:5000 from your phone or computer to:
 
 Changes take effect immediately — no restart needed.
 
-Project Structure
-pi-sports-ticker/
-├── sports_ticker.py      # Main application (display loop + Flask API)
-├── my_teams.json         # Persisted list of tracked teams (auto-generated)
-├── images/
-│   └── Football.png      # Icon used for NFL/NCAAF possession indicator
-└── README.md
 
 Notes
 Currently tuned for a 800x480 display; other resolutions will need layout adjustments in the rendering functions.
