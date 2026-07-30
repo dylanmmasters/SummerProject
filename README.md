@@ -81,7 +81,7 @@ Now the Pi boots straight into the live ticker, no login required.
 The live ticker can be closed by clicking the top-right corner of the screen. 
 
 Managing Teams
-Visit http://<pi-ip>:5000 from your phone or computer to:
+Visit http://YOUR PI-IP:5000 from your phone or computer to:
 - View all currently tracked teams
 - Search and add teams from any supported league
 - Remove teams from the rotation
