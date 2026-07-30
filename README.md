@@ -63,7 +63,7 @@ Getting Started
     - sudo raspi-config
     - Navigate to: System Options → Auto Login → Yes → Yes → Ok → Finish → Yes
     - Wait for Pi to finish restarting
-    - ssh <USERNAME>@<HOSTNAME or IP address>
+    - ssh USERNAME@HOSTNAME or IP_ADDRESSS
     - mkdir -p ~/.config/autostart
     - nano ~/.config/autostart/sports_ticker.desktop
     - Paste this and replace USERNAME with yours
@@ -86,7 +86,7 @@ Now the Pi boots straight into the live ticker, no login required.
 The display can be closed by clicking the top-right corner of the screen. 
 
 Managing Teams
-Visit http://YOUR PI'S IP ADDRESS HERE:5000 from your phone or computer to:
+Visit http://IP_ADDRESS:5000 from your phone or computer to:
 - View all currently tracked teams
 - Search and add teams from any supported league
 - Remove teams from the rotation
