@@ -1,6 +1,8 @@
 🏈 Pi Sports Ticker
 
-A physical, always-on sports scoreboard built for a small Raspberry Pi touchscreen. It tracks your favorite teams across the NBA, MLB, NHL, NFL, NCAAF, MLS, and the Premier League (plus upcoming UFC fights), automatically switching into a live in-game view — complete with sport-specific overlays like shots on goal, bonus indicators, ball/strike counts, and down & distance — whenever one of your teams is playing.
+A physical, always-on sports scoreboard built for a small Raspberry Pi touchscreen. 
+It tracks your favorite teams across the NBA, MLB, NHL, NFL, NCAAF, MLS, and the Premier League (plus upcoming UFC fights)
+Automatically switching into a live in-game view — complete with sport-specific overlays like shots on goal, bonus indicators, ball/strike counts, and down & distance — whenever one of your teams is playing.
 A built-in web dashboard lets you add or remove tracked teams from any phone or laptop on your network, no SSH required.
 
 
@@ -34,18 +36,20 @@ Tech Stack
 
 Getting Started
 1. Flash & set up the Pi
-Flash Raspberry Pi OS (Bullseye or later, with desktop) to your SD card using Raspberry Pi Imager, and enable SSH/Wi-Fi during setup if desired. Connect the Hosyond display via the DSI ribbon cable per its included instructions — it's plug-and-play with no display driver installation required.
+Flash Raspberry Pi OS (Bullseye or later, with desktop) to your SD card using Raspberry Pi Imager, and enable SSH/Wi-Fi during setup if desired.
+Connect the Hosyond display via the DSI ribbon cable per its included instructions — it's plug-and-play with no display driver installation required.
 
-2. Clone the repo
+3. Clone the repo
 git clone https://github.com/<your-username>/pi-sports-ticker.git
 cd pi-sports-ticker
 
-3. Install dependencies
+4. Install dependencies
 sudo apt update && sudo apt install -y python3-pip
 pip3 install pygame flask requests
 
 5. Configure your teams
-On first run, the app seeds my_teams.json with a default set of teams. You can either edit that file directly or (recommended) launch the app once and use the web dashboard at http://<pi-ip>:5000 to search and add/remove teams visually.
+On first run, the app seeds my_teams.json with a default set of teams.
+You can either edit that file directly or (recommended) launch the app once and use the web dashboard at http://<pi-ip>:5000 to search and add/remove teams visually.
 
 5. Run it
 python3 sports_ticker.py
@@ -54,7 +58,6 @@ The display will launch fullscreen, and the web dashboard will be reachable at h
 6. Launch on boot (kiosk mode)
 To have the ticker start automatically when the Pi powers on, set it up as a systemd service:
 
-# /etc/systemd/system/sports-ticker.service
 [Unit]
 Description=Pi Sports Ticker
 After=graphical.target network-online.target
