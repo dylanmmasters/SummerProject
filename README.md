@@ -43,7 +43,7 @@ Getting Started
 2. Upload code to Pi
 - Open a terminal
 - Connect to the Pi using:
-  - ssh <USERNAME>@<HOSTNAME or IP_ADDRESS>
+  - ssh USERNAME@HOSTNAME or IP_ADDRESSS
     - USERNAME = the login name on the Pi (ex: my_pi4)
     - HOSTNAME = the Pi’s network name (ex: sportsTicker.local)
     - IP_ADDRESS = the Pi’s actual network IP (ex: 192.168.1.xx)
