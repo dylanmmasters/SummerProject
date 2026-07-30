@@ -29,10 +29,10 @@ A built-in web dashboard lets you add or remove tracked teams from any phone or 
 - 🥊UFC: shows when the next UFC event is. UFC does not currently have a free api for live stats
 
 ## Tech Stack
--Pygame	  Fullscreen rendering loop, touch input, live/final scoreboard graphics
--Flask	  Web dashboard for managing tracked teams
--ESPN's   public API	Schedules, live scores, box scores, and team logos
--zoneinfo	Local time conversion for upcoming game times (America/New_York)
+- Pygame Fullscreen rendering loop, touch input, live/final scoreboard graphics
+- Flask Web dashboard for managing tracked teams
+- ESPN's public API	Schedules, live scores, box scores, and team logos
+- zoneinfo Local time conversion for upcoming game times (America/New_York)
 
 ## Getting Started
 1. Flash & set up the Pi
