@@ -110,7 +110,7 @@ Visit http://IP_ADDRESS:5000 from your phone or computer to:
 Changes take effect immediately — no restart needed.
 
 
-### Notes
+## Notes
 
 Currently tuned for a 800x480 display; other resolutions will need layout adjustments in the rendering functions.
 Uses ESPN's unofficial public API endpoints, which may change without notice.
