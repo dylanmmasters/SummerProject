@@ -1081,7 +1081,7 @@ def render_soccer(screen, game, home, away, league):
         league_logo=get_cached_logo(FALLBACK_LOGO,200)
     screen.blit(league_logo, (get_center(WIDTH, league_logo.get_width()), 0))
 
-    detail=game["status"]["type"]["shortDetail"]
+    detail=game["status"]["type"]["description"]
     time=game["status"]["displayClock"]
 
 
@@ -1387,7 +1387,7 @@ def cycle():
                     elif league in ("football/nfl", "football/college-football"):
                         live_display(league, render_football)
                     elif league in ("soccer/usa.1", "soccer/eng.1"):
-                        live_display(league)
+                        live_display(league, render_soccer)
                     last_rotation = time.time()
                 if lock_button.collidepoint(event.pos):
                     locked = not locked
