@@ -26,7 +26,12 @@ sports_data = []
 
 WIDTH, HEIGHT = 800, 480
 
+# ─── ntfy app notification setup ─────────────────────────────────────────────────
+
+NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
+
 # ─── Invisible Exit Zone (top-right corner) ──────────────────────────────────────
+
 EXIT_ZONE_SIZE = 60
 exit_zone = pygame.Rect(WIDTH - EXIT_ZONE_SIZE, 0, EXIT_ZONE_SIZE, EXIT_ZONE_SIZE)
 
@@ -1536,11 +1541,14 @@ def get_local_ip():
 
 
 def send_startup_notification():
+    if not NTFY_TOPIC:
+        print("NTFY_TOPIC not set — skipping startup notification")
+        return
     ip  = get_local_ip()
     url = f"http://{ip}:5000"
     try:
         requests.post(
-            "https://ntfy.sh/sports-display-ticker",
+            f"https://ntfy.sh/{NTFY_TOPIC}",
             data=f"Sports Display is live! Manage your teams at {url}",
             headers={"Title": "Sports Display Started"},
             timeout=5
