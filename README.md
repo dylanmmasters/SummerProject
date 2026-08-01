@@ -119,7 +119,7 @@ Now the Pi boots straight into the live ticker, no login required.
 The display can be closed by clicking the top-right corner of the screen. 
 
 ## Managing Teams
-Visit 'http://IP_ADDRESS:5000' from your phone or computer to:
+Visit `http://IP_ADDRESS:5000` from your phone or computer to:
 - View all currently tracked teams
 - Search and add teams from any supported league
 - Remove teams from the rotation
@@ -142,7 +142,7 @@ The Pi pings an ntfy.sh topic on boot with a link to the web dashboard, so you d
 
 ## Notes
 
-Currently tuned for a 800x480 display; other resolutions will need layout adjustments in the rendering functions.
+Currently tuned for a **800x480** display; other resolutions will need layout adjustments in the rendering functions.
 Uses ESPN's unofficial public API endpoints, which may change without notice.
 Built and tested for personal, non-commercial use.
-Use sports_display_laptop.py to test implementations. This code does not make the screen fullscreen or hide your cursor, thus making the display easy to use on a laptop/monitor. Feel free to fork and adapt for your own setup.
+Use **sports_display_laptop.py** to test implementations. This code does not make the screen fullscreen or hide your cursor, thus making the display easy to use on a laptop/monitor. **Feel free to fork and adapt for your own setup.**
