@@ -126,6 +126,10 @@ The Pi pings an ntfy.sh topic on boot with a link to the web dashboard, so you d
 
 **Choosing a topic name:** ntfy.sh topics are public and unauthenticated by default — anyone who knows (or guesses) your topic name can read your notifications or subscribe to it. Pick something long and random (e.g. `sd-q4vzn82jt7wf`) rather than something guessable like `sports-ticker`.
 
+## OLED Display Demo
+
+![OLED Demo](Display%20Pictures/OLED_Display_Demo.gif)
+
 ## Notes
 
 Currently tuned for a 800x480 display; other resolutions will need layout adjustments in the rendering functions.
