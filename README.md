@@ -97,6 +97,13 @@ A built-in web dashboard lets you add or remove tracked teams from any phone or 
     ```bash
     sudo reboot
     ```
+4. Updating Code
+    ```bash
+    ssh USERNAME@HOSTNAME
+    cd SummerProject/Sports
+    git pull
+    sudo reboot
+    ```
         
 Now the Pi boots straight into the live ticker, no login required.
 The display can be closed by clicking the top-right corner of the screen. 
