@@ -83,12 +83,12 @@ A built-in web dashboard lets you add or remove tracked teams from any phone or 
    mkdir -p ~/.config/autostart
    nano ~/.config/autostart/sports_ticker.desktop
    ```
-    - Paste this and replace USERNAME with yours
+    - Paste this and replace USERNAME with yours, and TOPIC with a unique ntfy.sh topic name of your choosing (used for the startup notification)
     ```bash
     [Desktop Entry]
     Type=Application
     Name=Sports Ticker
-    Exec=/usr/bin/python3 /home/USERNAME/SummerProject/Sports/sports_display_OLED.py
+    Exec=/usr/bin/env NTFY_TOPIC=TOPIC /usr/bin/python3 /home/USERNAME/SummerProject/Sports/sports_display_OLED.py
     Path=/home/USERNAME/SummerProject/Sports
     X-GNOME-Autostart-enabled=true
     ```
@@ -116,6 +116,15 @@ Visit http://IP_ADDRESS:5000 from your phone or computer to:
 
 Changes take effect immediately — no restart needed.
 
+## Getting Startup Notifications (ntfy.sh)
+
+The Pi pings an ntfy.sh topic on boot with a link to the web dashboard, so you don't have to hunt for its IP address every time.
+
+1. Install the ntfy app: `https://ntfy.sh` in a browser
+2. In the app, tap **+** and subscribe to the exact same `TOPIC` name you used in `sports_ticker.desktop`
+3. Reboot the Pi — you should get a notification with the dashboard link
+
+**Choosing a topic name:** ntfy.sh topics are public and unauthenticated by default — anyone who knows (or guesses) your topic name can read your notifications or subscribe to it. Pick something long and random (e.g. `sd-q4vzn82jt7wf`) rather than something guessable like `sports-ticker`.
 
 ## Notes
 
