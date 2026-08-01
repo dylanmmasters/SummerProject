@@ -36,7 +36,7 @@ A built-in web dashboard lets you add or remove tracked teams from any phone or 
 
 ## Getting Started
 1. **Flash & set up the Pi**
-- Flash Raspberry Pi OS to your SD card using Raspberry Pi Imager, and enable SSH/Wi-Fi during setup if desired. Remember your username and hostname. 'https://www.raspberrypi.com/software/'
+- Flash Raspberry Pi OS to your SD card using Raspberry Pi Imager, and enable SSH/Wi-Fi during setup if desired. Remember your username and hostname. `https://www.raspberrypi.com/software/`
 - Insert the SD card into the Pi and connect the Hosyond display via the DSI ribbon cable per its included instructions
 — It's plug-and-play so you can now turn the Pi on
 
@@ -130,7 +130,7 @@ Changes take effect immediately — no restart needed.
 
 The Pi pings an ntfy.sh topic on boot with a link to the web dashboard, so you don't have to hunt for its IP address every time.
 
-1. Install the ntfy app: 'https://ntfy.sh' in a browser
+1. Install the ntfy app: `https://ntfy.sh` in a browser
 2. In the app, tap **+** and subscribe to the exact same **TOPIC** name you used in sports_ticker.desktop
 3. Reboot the Pi — you should get a notification with the dashboard link
 
