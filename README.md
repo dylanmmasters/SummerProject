@@ -7,26 +7,26 @@ A built-in web dashboard lets you add or remove tracked teams from any phone or 
 
 
 ## Hardware
-- Raspberry Pi 4 — Vilros Basic Starter Kit (4GB, fan-cooled ABS case)
-- Hosyond 7" IPS Touchscreen — 800x480 DSI display, capacitive touch, driver-free MIPI interface
+- **Raspberry Pi 4** — Vilros Basic Starter Kit (4GB, fan-cooled ABS case)
+- **Hosyond 7" IPS Touchscreen** — 800x480 DSI display, capacitive touch, driver-free MIPI interface
 - Boots directly into the app in kiosk-style fullscreen — no monitor, keyboard, or mouse needed after setup
 
 ## Features
-- Live rotation — Cycles through each tracked team's next/current game every few seconds
-- Live game view — Tap the game to jump into a full-screen live scoreboard with sport-specific detail:
+- **Live rotation** — Cycles through each tracked team's next/current game every few seconds
+- **Live game view** — Tap the game to jump into a full-screen live scoreboard with sport-specific detail:
   - 🏒 NHL: period/clock + shots on goal
   - 🏀 NBA: quarter/clock + bonus indicators
   - ⚾ MLB: inning, count, outs, and baserunners on a diamond
   - 🏈 NFL/NCAAF: quarter/clock, down & distance, and ball position
   - ⚽ MLS/EPL: match clock and status
-- Final score screen — Tap "LAST" to see the final result of each team's most recently completed game (with the winner highlighted)
-- Auto-detects live games — If a locked/live game goes final while you're watching, it automatically transitions to the final score screen instead of dropping back to the rotation
-- Touch controls — Cycle, lock, next-game, and back buttons built for finger taps on the touchscreen
-- Web-based team manager — A lightweight Flask site (served on port 5000) lets you search each league's teams and add/remove them from the rotation from any device on your Wi-Fi
-- Persistent config — Tracked teams are saved to a local JSON file and reloaded on every restart
-- Startup notification — Pings an ntfy.sh topic with the Pi's local IP/web UI link on boot, so you always know where to find the dashboard
-- Hidden exit gesture — An invisible tap zone in the top-right corner quits the fullscreen app for maintenance
-- 🥊UFC: shows when the next UFC event is. UFC does not currently have a free api for live stats
+- **Final score screen** — Tap "LAST" to see the final result of each team's most recently completed game (with the winner highlighted)
+- **Auto-detects live games** — If a locked/live game goes final while you're watching, it automatically transitions to the final score screen instead of dropping back to the rotation
+- **Touch controls** — Cycle, lock, next-game, and back buttons built for finger taps on the touchscreen
+- **Web-based team manager** — A lightweight Flask site (served on port 5000) lets you search each league's teams and add/remove them from the rotation from any device on your Wi-Fi
+- **Persistent config** — Tracked teams are saved to a local JSON file and reloaded on every restart
+- **Startup notification** — Pings an ntfy.sh topic with the Pi's local IP/web UI link on boot, so you always know where to find the dashboard
+- **Hidden exit gesture** — An invisible tap zone in the top-right corner quits the fullscreen app for maintenance
+- 🥊**UFC** — shows when the next UFC event is. UFC does not currently have a free api for live stats
 
 ## Tech Stack
 - Pygame Fullscreen rendering loop, touch input, live/final scoreboard graphics
@@ -35,20 +35,23 @@ A built-in web dashboard lets you add or remove tracked teams from any phone or 
 - zoneinfo Local time conversion for upcoming game times (America/New_York)
 
 ## Getting Started
-1. Flash & set up the Pi
-- Flash Raspberry Pi OS to your SD card using Raspberry Pi Imager, and enable SSH/Wi-Fi during setup if desired. Remember your username and hostname. https://www.raspberrypi.com/software/
+1. **Flash & set up the Pi**
+- Flash Raspberry Pi OS to your SD card using Raspberry Pi Imager, and enable SSH/Wi-Fi during setup if desired. Remember your username and hostname. 'https://www.raspberrypi.com/software/'
 - Insert the SD card into the Pi and connect the Hosyond display via the DSI ribbon cable per its included instructions
 — It's plug-and-play so you can now turn the Pi on
 
-2. Upload code to Pi
+2. **Upload code to Pi**
 - Open a terminal
-- Connect to the Pi using:
+- Connect to the Pi using one of the two:
   ```bash
   ssh USERNAME@HOSTNAME
-  ``` 
-    - USERNAME = the login name on the Pi (ex: my_pi4)
-    - HOSTNAME = the Pi’s network name (ex: sportsTicker.local)
-    - IP_ADDRESS = the Pi’s actual network IP (ex: 192.168.1.xx)
+  ```
+  ```bash
+  ssh USERNAME@IP_ADDRESS
+  ```
+    - **USERNAME** = the login name on the Pi (ex: my_pi4)
+    - **HOSTNAME** = the Pi’s network name (ex: sportsTicker.local)
+    - **IP_ADDRESS** = the Pi’s actual network IP (ex: 192.168.1.xx)
 - Clone GitHub
   ```bash
   git clone https://github.com/USERNAME/SummerProject.git
@@ -69,7 +72,7 @@ A built-in web dashboard lets you add or remove tracked teams from any phone or 
   python3 sports_display_OLED.py
   ```
 
-3. Setting up auto-start
+3. **Setting up auto-start**
    ```bash
    sudo raspi-config
    ```
@@ -78,12 +81,12 @@ A built-in web dashboard lets you add or remove tracked teams from any phone or 
    ```bash
    ssh USERNAME@HOSTNAME
    ```
-    - Create the autostart foler and file
+    - Create the autostart folder and file
    ```bash
    mkdir -p ~/.config/autostart
    nano ~/.config/autostart/sports_ticker.desktop
    ```
-    - Paste this and replace USERNAME with yours, and TOPIC with a unique ntfy.sh topic name of your choosing (used for the startup notification)
+    - Paste this and replace **USERNAME** with yours, and **TOPIC** with a unique ntfy.sh topic name of your choosing (used for the startup notification)
     ```bash
     [Desktop Entry]
     Type=Application
@@ -97,9 +100,16 @@ A built-in web dashboard lets you add or remove tracked teams from any phone or 
     ```bash
     sudo reboot
     ```
-4. Updating Code
+4.**Updating Code**
+  - Connect to the Pi using one of the two:
+  ```bash
+  ssh USERNAME@HOSTNAME
+  ```
+  ```bash
+  ssh USERNAME@IP_ADDRESS
+  ```
+  - Then copy this
     ```bash
-    ssh USERNAME@HOSTNAME
     cd SummerProject/Sports
     git pull
     sudo reboot
@@ -109,7 +119,7 @@ Now the Pi boots straight into the live ticker, no login required.
 The display can be closed by clicking the top-right corner of the screen. 
 
 ## Managing Teams
-Visit http://IP_ADDRESS:5000 from your phone or computer to:
+Visit 'http://IP_ADDRESS:5000' from your phone or computer to:
 - View all currently tracked teams
 - Search and add teams from any supported league
 - Remove teams from the rotation
@@ -120,11 +130,11 @@ Changes take effect immediately — no restart needed.
 
 The Pi pings an ntfy.sh topic on boot with a link to the web dashboard, so you don't have to hunt for its IP address every time.
 
-1. Install the ntfy app: `https://ntfy.sh` in a browser
-2. In the app, tap **+** and subscribe to the exact same `TOPIC` name you used in `sports_ticker.desktop`
+1. Install the ntfy app: 'https://ntfy.sh' in a browser
+2. In the app, tap **+** and subscribe to the exact same **TOPIC** name you used in sports_ticker.desktop
 3. Reboot the Pi — you should get a notification with the dashboard link
 
-**Choosing a topic name:** ntfy.sh topics are public and unauthenticated by default — anyone who knows (or guesses) your topic name can read your notifications or subscribe to it. Pick something long and random (e.g. `sd-q4vzn82jt7wf`) rather than something guessable like `sports-ticker`.
+**Choosing a topic name:** ntfy.sh topics are public and unauthenticated by default — anyone who knows (or guesses) your topic name can read your notifications or subscribe to it. Pick something long and random (e.g. **sd-q4vzn82jt7wf**) rather than something guessable like **sports-ticker**.
 
 ## OLED Display Demo
 
