@@ -1,17 +1,5 @@
 [
   [
-    "soccer/eng.1",
-    "359"
-  ],
-  [
-    "basketball/nba",
-    "ny"
-  ],
-  [
-    "hockey/nhl",
-    "nj"
-  ],
-  [
     "football/nfl",
     "pit"
   ],
@@ -20,11 +8,23 @@
     "psu"
   ],
   [
+    "baseball/mlb",
+    "nyy"
+  ],
+  [
+    "hockey/nhl",
+    "nj"
+  ],
+  [
+    "basketball/nba",
+    "ny"
+  ],
+  [
     "soccer/usa.1",
     "20232"
   ],
   [
-    "baseball/mlb",
-    "nyy"
+    "soccer/eng.1",
+    "382"
   ]
 ]
