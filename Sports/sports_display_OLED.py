@@ -75,6 +75,8 @@ SUPPORTED_LEAGUES = [
 
 TEAMS_FILE = os.path.join(os.path.dirname(__file__), "my_teams.json")
 
+FOOTBALL_IMG = os.path.join(os.path.dirname(__file__), "images", "Football.png")
+
 DEFAULT_TEAMS = [
     ("basketball/nba",           "nyk"),
     ("baseball/mlb",             "nyy"),
@@ -980,7 +982,7 @@ def render_football(screen, game, home, away, league):
         league_logo = get_cached_logo(FALLBACK_LOGO, 200)
     screen.blit(league_logo, (get_center(WIDTH, league_logo.get_width()), 0))
 
-    football = pygame.image.load("images/Football.png").convert_alpha()
+    football = pygame.image.load(FOOTBALL_IMG).convert_alpha()
     football = pygame.transform.smoothscale(football, (40, 40))
 
     status = game.get("status", {})
