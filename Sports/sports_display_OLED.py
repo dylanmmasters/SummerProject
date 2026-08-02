@@ -41,9 +41,8 @@ def check_exit(pos):
         exit()
 
 pygame.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-#screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
-#pygame.mouse.set_visible(False)
+screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
+pygame.mouse.set_visible(False)
 
 title_font = pygame.font.SysFont("Verdana", 32, bold=True)
 sub_font   = pygame.font.SysFont("Verdana", 32)
