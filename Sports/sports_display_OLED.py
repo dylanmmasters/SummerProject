@@ -41,8 +41,9 @@ def check_exit(pos):
         exit()
 
 pygame.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
-pygame.mouse.set_visible(False)
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+#screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
+#pygame.mouse.set_visible(False)
 
 title_font = pygame.font.SysFont("Verdana", 32, bold=True)
 sub_font   = pygame.font.SysFont("Verdana", 32)
@@ -265,7 +266,8 @@ def fetch_team_logo(team, sport_league):
         logo  = logos[0].get("href") if logos else FALLBACK_LOGO
         team_logo_cache[key] = logo
         return logo
-    except:
+    except Exception as e:
+        print(f"fetch_team_logo failed for {sport_league}/{team}:", e)
         return FALLBACK_LOGO
 
 
@@ -275,7 +277,8 @@ def fetch_team_record(team_id, sport_league):
         data    = session.get(url, timeout=5).json()
         records = data.get("team", {}).get("record", {}).get("items", [])
         return next((r["summary"] for r in records if r.get("type") in ("total", "overall")), None)
-    except:
+    except Exception as e:
+        print(f"fetch_team_record failed for {sport_league}/{team_id}:", e)
         return None
 
 
@@ -297,7 +300,8 @@ def get_next_event(events):
                 return e
             if dt > now:
                 upcoming.append((dt, e))
-        except:
+        except Exception as ex:
+            print(f"get_next_event: skipping malformed event {e.get('id')}:", ex)
             continue
     if not upcoming:
         return None
@@ -320,7 +324,8 @@ def get_last_finished_event(events):
             dt    = datetime.datetime.fromisoformat(e["date"].replace("Z", "+00:00"))
             if state == "post" and dt < now:
                 finished.append((dt, e))
-        except:
+        except Exception as ex:
+            print(f"get_last_finished_event: skipping malformed event {e.get('id')}:", ex)
             continue
     if not finished:
         return None
@@ -328,107 +333,11 @@ def get_last_finished_event(events):
     return finished[0][1]
 
 
-# 2026 World Cup runs June 11 – July 19; padded a bit on either side.
-WORLD_CUP_DATE_RANGE = "20260601-20260731"
-
-
-def get_world_cup_events(abbr):
-    """
-    National-team schedules aren't reliably exposed via the per-team
-    /schedule endpoint under the fifa.world tournament league (it comes back
-    empty) — ESPN only really backs that league with the scoreboard. Pull
-    the whole tournament scoreboard for the date range instead and filter
-    down to games involving this team.
-    """
-    url    = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard"
-    params = {"dates": WORLD_CUP_DATE_RANGE, "limit": 300}
-    try:
-        data   = session.get(url, params=params, timeout=8).json()
-        events = data.get("events", [])
-        abbr   = abbr.lower()
-        return [
-            e for e in events
-            if any(
-                c.get("team", {}).get("abbreviation", "").lower() == abbr
-                for c in e.get("competitions", [{}])[0].get("competitors", [])
-            )
-        ]
-    except Exception as e:
-        print(f"World Cup scoreboard fetch failed for {abbr}:", e)
-        return []
-
-
-def get_world_cup_team_game(abbr):
-    events    = get_world_cup_events(abbr)
-    info      = fetch_team_info("soccer/fifa.world", abbr)
-    event     = get_next_event(events)
-    last_evt  = get_last_finished_event(events)
-    last_game = _build_last_game_dict(last_evt, "soccer/fifa.world") if last_evt else None
-
-    if not event:
-        return {
-            "title":         info["displayName"],
-            "subtitle":      "No upcoming games",
-            "home_logo_url": info["logo"],
-            "away_logo_url": None,
-            "state":         None,
-            "league":        "soccer/fifa.world",
-            "team_id":       abbr,
-            "home_record":   None,
-            "away_record":   None,
-            "last_game":     last_game,
-        }
-
-    comp        = event["competitions"][0]
-    comp_status = comp.get("status", {}).get("type", {})
-    state       = comp_status.get("state")
-    competitors = comp["competitors"]
-    home_comp   = next((c for c in competitors if c.get("homeAway") == "home"), competitors[0])
-    away_comp   = next((c for c in competitors if c.get("homeAway") == "away"), competitors[1])
-
-    title = event.get("name", info["displayName"])
-    short = (comp_status.get("shortDetail") or comp_status.get("detail") or "TBD")
-    if state == "pre":
-        raw_date = event.get("date", "")
-        try:
-            dt_utc   = datetime.datetime.fromisoformat(raw_date.replace("Z", "+00:00"))
-            dt_local = dt_utc.astimezone(ET)
-            short    = dt_local.strftime("%A %B %d, %I:%M %p")
-        except:
-            pass
-
-    return {
-        "title":         title,
-        "subtitle":      short,
-        "home_logo_url": fetch_team_logo(home_comp["team"]["id"], "soccer/fifa.world"),
-        "away_logo_url": fetch_team_logo(away_comp["team"]["id"], "soccer/fifa.world"),
-        "state":         state,
-        "league":        "soccer/fifa.world",
-        "team_id":       abbr,
-        "home_record":   None,
-        "away_record":   None,
-        "last_game":     last_game,
-    }
-
-
 def get_team_game(sport_league, team_id):
-    if sport_league == "soccer/fifa.world":
-        return get_world_cup_team_game(team_id)
+    is_soccer_club = sport_league.startswith("soccer/")
 
-    # Convert soccer club abbreviations to numeric IDs if needed
-    if sport_league.startswith("soccer/") and not str(team_id).isdigit():
-        teams = fetch_league_teams(sport_league)
-        match = next((t for t in teams if t["abbreviation"] == str(team_id).lower()), None)
-        if match:
-            team_id = str(match["id"])
-
-    # ESPN's club-soccer team schedule broke on site.api.espn.com — it now
-    # silently returns events: [] no matter what season/seasontype params are
-    # passed. The working replacement lives on a different host entirely and
-    # uses a league-agnostic "all" path plus a required fixture=true flag.
-    if sport_league.startswith("soccer/"):
+    if is_soccer_club:
         url = f"https://site.web.api.espn.com/apis/site/v2/sports/soccer/all/teams/{team_id}/schedule"
-        params = {"fixture": "true"}
     else:
         url = f"https://site.api.espn.com/apis/site/v2/sports/{sport_league}/teams/{team_id}/schedule"
         params = {}
@@ -436,18 +345,44 @@ def get_team_game(sport_league, team_id):
             params["season"] = season_year_for(sport_league)
             params["seasontype"] = 2  # 2 = regular season (1 = preseason, 3 = postseason)
     try:
-        data      = session.get(url, params=params, timeout=5).json()
-        team_info = data.get("team", {})
-        events    = data.get("events", [])
+        team_info = {}
+        events = []
 
-        # If parameterized search yielded no games, try without parameters
-        if not events and params:
-            data   = session.get(url, timeout=5).json()
-            team_info = data.get("team", team_info)
+        if is_soccer_club:
+            # fixture=true is required for this endpoint to return anything,
+            # but it only returns games that haven't started yet — it silently
+            # drops anything "in" (live) or "post" (finished). Fetch a few
+            # flavors and merge (de-duped by event id) so live/last-game
+            # detection has something to find.
+            seen_ids = set()
+            for fx_params in ({"fixture": "true"}, {"fixture": "false"}, {}):
+                try:
+                    resp = session.get(url, params=fx_params, timeout=5).json()
+                except Exception as e:
+                    print(f"soccer schedule fetch failed for {sport_league}/{team_id} (params={fx_params}):", e)
+                    continue
+                if not team_info:
+                    team_info = resp.get("team", {}) or team_info
+                for e in resp.get("events", []):
+                    eid = e.get("id")
+                    if eid and eid in seen_ids:
+                        continue
+                    if eid:
+                        seen_ids.add(eid)
+                    events.append(e)
+        else:
+            data = session.get(url, params=params, timeout=5).json()
+            team_info = data.get("team", {})
             events = data.get("events", [])
 
-        event     = get_next_event(events)
-        logo_url  = fetch_team_logo(team_id, sport_league)
+            # If parameterized search yielded no games, try without parameters
+            if not events and params:
+                data = session.get(url, timeout=5).json()
+                team_info = data.get("team", team_info)
+                events = data.get("events", [])
+
+        event = get_next_event(events)
+        logo_url = fetch_team_logo(team_id, sport_league)
 
         last_event = get_last_finished_event(events)
         last_game  = None
@@ -487,8 +422,8 @@ def get_team_game(sport_league, team_id):
                 dt_utc  = datetime.datetime.fromisoformat(raw_date.replace("Z", "+00:00"))
                 dt_local = dt_utc.astimezone(ET)
                 short   = dt_local.strftime("%A %B %d, %I:%M %p")
-            except:
-                pass
+            except Exception as e:
+                print(f"get_team_game: could not parse date {raw_date!r} for {sport_league}/{team_id}:", e)
 
         return {
             "title":         title,
@@ -535,12 +470,22 @@ def _build_last_game_dict(event, sport_league):
         away_score = _score(away_comp)
 
         # Use ESPN's own winner flag — more reliable than score comparison for OT/SO
-        home_won = home_comp.get("winner")   # True / False / None
-        if home_won is None:
-            # Fallback: compare numeric scores
+        home_flag = home_comp.get("winner")
+        away_flag = away_comp.get("winner")
+
+        if home_flag is True or away_flag is True:
+            # Someone has an explicit winner flag (regulation win, or shootout winner)
+            home_won = bool(home_flag)
+        elif home_flag is False and away_flag is False:
+            # Explicit draw — ESPN sets winner:false on both sides
+            home_won = None
+        else:
+            # Winner flags missing entirely — fall back to score comparison
             try:
-                home_won = int(home_score) > int(away_score)
-            except:
+                hs, as_ = int(home_score), int(away_score)
+                home_won = None if hs == as_ else hs > as_
+            except Exception as e:
+                print(f"_build_last_game_dict: could not compare scores {home_score!r}/{away_score!r}:", e)
                 home_won = None
 
         # Status detail: "Final", "Final/OT", "Final/SO", etc.
@@ -551,7 +496,8 @@ def _build_last_game_dict(event, sport_league):
             dt_utc   = datetime.datetime.fromisoformat(raw_date.replace("Z", "+00:00"))
             dt_local = dt_utc.astimezone(ET)
             date_str = dt_local.strftime("%b %d, %Y")
-        except:
+        except Exception as e:
+            print(f"_build_last_game_dict: could not parse date {raw_date!r}:", e)
             date_str = ""
 
         return {
@@ -898,7 +844,8 @@ def get_nhl_sog(game_id):
                 if stat.get("name") == "shotsTotal":
                     sog[ha] = int(stat.get("displayValue", 0))
         return sog
-    except:
+    except Exception as e:
+        print(f"get_nhl_sog failed for game {game_id}:", e)
         return {"home": 0, "away": 0}
 
 
@@ -931,7 +878,8 @@ def get_nba_bonus(game_id):
             if state in ("BONUS", "DOUBLE"):
                 bonus[ha] = True
         return bonus
-    except:
+    except Exception as e:
+        print(f"get_nba_bonus failed for game {game_id}:", e)
         return {"home": False, "away": False}
 
 
@@ -1029,6 +977,7 @@ def render_football(screen, game, home, away, league):
     try:
         league_logo = get_cached_logo(league_logos[league], 200)
     except Exception as e:
+        print(f"render_football: league logo lookup failed for {league}:", e)
         league_logo = get_cached_logo(FALLBACK_LOGO, 200)
     screen.blit(league_logo, (get_center(WIDTH, league_logo.get_width()), 0))
 
@@ -1083,6 +1032,7 @@ def render_soccer(screen, game, home, away, league):
     try:
         league_logo = get_cached_logo(league_logos[league],200)
     except Exception as e:
+        print(f"render_soccer: league logo lookup failed for {league}:", e)
         league_logo=get_cached_logo(FALLBACK_LOGO,200)
     screen.blit(league_logo, (get_center(WIDTH, league_logo.get_width()), 0))
 
@@ -1536,7 +1486,8 @@ def get_local_ip():
         ip = s.getsockname()[0]
         s.close()
         return ip
-    except:
+    except Exception as e:
+        print("get_local_ip failed:", e)
         return "unknown"
 
 

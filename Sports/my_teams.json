@@ -1,34 +1,30 @@
 [
   [
-    "football/nfl",
-    "pit"
-  ],
-  [
-    "baseball/mlb",
-    "nyy"
-  ],
-  [
-    "football/college-football",
-    "psu"
-  ],
-  [
-    "hockey/nhl",
-    "nj"
+    "soccer/eng.1",
+    "359"
   ],
   [
     "basketball/nba",
     "ny"
   ],
   [
-    "soccer/eng.1",
-    "382"
+    "hockey/nhl",
+    "nj"
+  ],
+  [
+    "football/nfl",
+    "pit"
+  ],
+  [
+    "football/college-football",
+    "psu"
   ],
   [
     "soccer/usa.1",
     "20232"
   ],
   [
-    "soccer/usa.1",
-    "17606"
+    "baseball/mlb",
+    "nyy"
   ]
 ]
