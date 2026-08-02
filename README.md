@@ -91,11 +91,15 @@ A built-in web dashboard lets you add or remove tracked teams from any phone or 
     [Desktop Entry]
     Type=Application
     Name=Sports Ticker
-    Exec=/usr/bin/env NTFY_TOPIC=TOPIC /usr/bin/python3 /home/USERNAME/SummerProject/Sports/sports_display_OLED.py
+    Exec=/bin/bash -c 'exec /usr/bin/env NTFY_TOPIC=TOPIC /usr/bin/python3 /home/USERNAME/SummerProject/Sports/sorts/sports_display_OLED.py >> /home/USERNAME/SummerProject/Sports/app.log 2>&1'
     Path=/home/USERNAME/SummerProject/Sports
     X-GNOME-Autostart-enabled=true
     ```
     - Save with Ctrl+O, Enter, and then Ctrl+X
+      - To see error messages if pi crashes
+      ```bash
+      tail -f ~/SummerProject/Sports/app.log
+      ```
     - Finally, reboot
     ```bash
     sudo reboot
