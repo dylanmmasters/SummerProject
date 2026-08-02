@@ -1,0 +1,30 @@
+[
+  [
+    "football/nfl",
+    "pit"
+  ],
+  [
+    "football/college-football",
+    "psu"
+  ],
+  [
+    "baseball/mlb",
+    "nyy"
+  ],
+  [
+    "hockey/nhl",
+    "nj"
+  ],
+  [
+    "basketball/nba",
+    "ny"
+  ],
+  [
+    "soccer/usa.1",
+    "20232"
+  ],
+  [
+    "soccer/eng.1",
+    "382"
+  ]
+]
