@@ -64,7 +64,7 @@ A built-in web dashboard lets you add or remove tracked teams from any phone or 
     - Should see images, my_teams.json, sports_display_laptop.py, and sports_display_OLED.py
 - Install dependencies
   ```bash
-  pip install pygame flask requests --break-system-packages
+  pip install -r requirements.txt --break-system-packages
   ```
 - Run Code
   ```bash

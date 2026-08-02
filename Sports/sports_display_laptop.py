@@ -1163,19 +1163,44 @@ def live_display(league, extra_renderer=None):
     watched end while this is on screen, transitions straight into
     final_display() with that game's final score instead of silently
     dropping back to the normal cycle.
+
+    Resilient to transient ESPN fetch/parse failures: a failed poll logs
+    and retries rather than ejecting back to the cycle screen.
     """
     global locked
     cycle_button     = pygame.Rect(0, 0, 0, 0)
     next_game_button = pygame.Rect(0, 0, 0, 0)
     game_idx = 0
     watched_game_id = None   # id of the game currently on screen, tracked across polls
+    games = []                # initialized here so button hit-testing is safe even if the first poll fails
 
     while True:
+        # ── Input handling runs every iteration, regardless of fetch success ──
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit(); exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                check_exit(event.pos)
+                if cycle_button.collidepoint(event.pos):
+                    locked = False
+                    pygame.event.clear()
+                    return
+                if next_game_button.collidepoint(event.pos) and games:
+                    game_idx = (game_idx + 1) % len(games)
+
+        # ── Fetch: isolated so a network hiccup doesn't end the session ──
         scores_url = f"https://site.api.espn.com/apis/site/v2/sports/{league}/scoreboard"
         try:
-            data       = session.get(scores_url, timeout=5).json()
+            data = session.get(scores_url, timeout=5).json()
+        except Exception as e:
+            print(f"live_display: scoreboard fetch failed for {league}, retrying:", e)
+            clock.tick(2)
+            continue
+
+        # ── Parse + render: isolated so a malformed payload doesn't end the session ──
+        try:
             all_events = data.get("events", [])
-            games      = []
+            games = []
 
             for event in all_events:
                 state = event.get("competitions", [{}])[0].get("status", {}).get("type", {}).get("state")
@@ -1185,18 +1210,6 @@ def live_display(league, extra_renderer=None):
                     if c["team"]["id"] in TEAM_IDS.get(league, []):
                         games.append(event)
                         break
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit(); exit()
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    check_exit(event.pos)
-                    if cycle_button.collidepoint(event.pos):
-                        locked = False
-                        pygame.event.clear()
-                        return
-                    if next_game_button.collidepoint(event.pos) and games:
-                        game_idx = (game_idx + 1) % len(games)
 
             if not games:
                 # No live games left for this league among our teams. If we were
@@ -1287,8 +1300,9 @@ def live_display(league, extra_renderer=None):
             clock.tick(1 / LIVE_DATA_REFRESH)
 
         except Exception as e:
-            print(f"Display failed for {league}:", e)
-            return
+            print(f"live_display: render failed for {league}, retrying:", e)
+            clock.tick(2)
+            continue
 
 
 # ─── Main Cycle ──────────────────────────────────────────────────────────────────
