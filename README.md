@@ -89,12 +89,12 @@ A built-in web dashboard lets you add or remove tracked teams from any phone or 
     - Paste this and replace **USERNAME** with yours, and **TOPIC** with a unique ntfy.sh topic name of your choosing (used for the startup notification)
     ```bash
     [Desktop Entry]
-  Type=Application
-  Name=Sports Ticker
-  Exec=/usr/bin/env NTFY_TOPIC=YOUR_TOPIC /usr/bin/python3 /home/YOUR_USERNAME/SummerProject/Sports/sports_display_OLED.py >> /home/YOUR_USERNAME/SummerProject/Sports/app.log 2>&1
-  Path=/home/YOUR_USERNAME/SummerProject/Sports
-  X-GNOME-Autostart-enabled=true
-    ```
+    Type=Application
+    Name=Sports Ticker
+    Exec=/usr/bin/env NTFY_TOPIC=YOUR_TOPIC /usr/bin/python3 /home/YOUR_USERNAME/SummerProject/Sports/sports_display_OLED.py >> /home/YOUR_USERNAME/SummerProject/Sports/app.log 2>&1
+    Path=/home/YOUR_USERNAME/SummerProject/Sports
+    X-GNOME-Autostart-enabled=true
+      ```
     - Save with Ctrl+O, Enter, and then Ctrl+X
       - To see error messages if pi crashes
       ```bash
