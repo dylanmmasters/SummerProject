@@ -35,41 +35,105 @@ NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "")
 EXIT_ZONE_SIZE = 60
 exit_zone = pygame.Rect(WIDTH - EXIT_ZONE_SIZE, 0, EXIT_ZONE_SIZE, EXIT_ZONE_SIZE)
 
+
 def check_exit(pos):
     if exit_zone.collidepoint(pos):
         pygame.quit()
         exit()
 
+
+# ─── Invisible Brightness Zone (top-left corner) ──────────────────────────────────────
+
+BRIGHTNESS_ZONE_SIZE = 60
+brightness_zone = pygame.Rect(0, 0, BRIGHTNESS_ZONE_SIZE, BRIGHTNESS_ZONE_SIZE)
+
+brightness = 0.8
+show_slider = False
+dragging_slider = False
+slider_timeout = 0
+
+# Slider bar dimensions (bottom of screen)
+SLIDER_HEIGHT = 10
+SLIDER_WIDTH = WIDTH // 4  # shrink width to 25%
+
+slider_rect = pygame.Rect(
+    (WIDTH - SLIDER_WIDTH) // 2,  # center horizontally
+    HEIGHT - SLIDER_HEIGHT - 10,  # bottom of screen
+    SLIDER_WIDTH,
+    SLIDER_HEIGHT
+)
+
+
+def check_brightness_zone(pos):
+    global show_slider, slider_last_touch
+    if brightness_zone.collidepoint(pos):
+        show_slider = True
+        slider_last_touch = time.time()
+
+
+def handle_brightness_slider(pos):
+    global brightness, slider_last_touch
+
+    if slider_rect.collidepoint(pos):
+        # Convert click position → brightness value (0.1 to 1.0)
+        rel_x = pos[0] - slider_rect.x
+        brightness = rel_x / slider_rect.width
+        brightness = max(0.1, min(brightness, 1.0))
+
+        # Apply brightness (software method)
+        pygame.display.set_gamma(brightness)
+
+        slider_last_touch = time.time()
+
+
+def draw_brightness_slider():
+    # Background bar
+    pygame.draw.rect(screen, (80, 80, 80), slider_rect)
+
+    # Filled portion
+    fill_width = int(slider_rect.width * brightness)
+    fill_rect = pygame.Rect(slider_rect.x, slider_rect.y, fill_width, SLIDER_HEIGHT)
+    pygame.draw.rect(screen, (255, 255, 255), fill_rect)
+
+
+def update_slider_visibility():
+    global show_slider
+    if show_slider and time.time() - slider_last_touch > 2:
+        show_slider = False
+
+
+# ─── Initialize ──────────────────────────────────────────────────────────────────────
+
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-#screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
-#pygame.mouse.set_visible(False)
+# screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
+# pygame.mouse.set_visible(False)
 
 title_font = pygame.font.SysFont("Verdana", 32, bold=True)
-sub_font   = pygame.font.SysFont("Verdana", 32)
+sub_font = pygame.font.SysFont("Verdana", 32)
 score_font = pygame.font.SysFont("Verdana", 70, bold=True)
 small_font = pygame.font.SysFont("Verdana", 22)
 
 # ─── League Logo URLs ────────────────────────────────────────────────────────────
 
 league_logos = {
-    "hockey/nhl":              "https://a.espncdn.com/i/teamlogos/leagues/500/nhl.png",
-    "baseball/mlb":            "https://a.espncdn.com/i/teamlogos/leagues/500/mlb.png",
-    "basketball/nba":          "https://a.espncdn.com/i/teamlogos/leagues/500/nba.png",
-    "football/nfl":            "https://a.espncdn.com/i/teamlogos/leagues/500/nfl.png",
+    "hockey/nhl": "https://a.espncdn.com/i/teamlogos/leagues/500/nhl.png",
+    "baseball/mlb": "https://a.espncdn.com/i/teamlogos/leagues/500/mlb.png",
+    "basketball/nba": "https://a.espncdn.com/i/teamlogos/leagues/500/nba.png",
+    "football/nfl": "https://a.espncdn.com/i/teamlogos/leagues/500/nfl.png",
     "football/college-football": "https://a2.espncdn.com/combiner/i?img=%2Fi%2Fespn%2Fmisc_logos%2F500%2Fncaa.png",
-    "soccer/usa.1":            "https://a.espncdn.com/i/teamlogos/leagues/500/mls.png",
-    "soccer/eng.1":            "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500-dark/23.png"
+    "soccer/usa.1": "https://a.espncdn.com/i/teamlogos/leagues/500/mls.png",
+    "soccer/eng.1": "https://a.espncdn.com/combiner/i?img=/i/leaguelogos/soccer/500-dark/23.png"
 }
 
 SUPPORTED_LEAGUES = [
-    ("basketball/nba",           "NBA"),
-    ("baseball/mlb",             "MLB"),
-    ("hockey/nhl",               "NHL"),
-    ("football/nfl",             "NFL"),
-    ("football/college-football","NCAAF"),
-    ("soccer/usa.1",             "MLS"),
-    ("soccer/eng.1",             "Premier League"),
+    ("basketball/nba", "NBA"),
+    ("baseball/mlb", "MLB"),
+    ("hockey/nhl", "NHL"),
+    ("football/nfl", "NFL"),
+    ("football/college-football", "NCAAF"),
+    ("soccer/usa.1", "MLS"),
+    ("soccer/eng.1", "Premier League"),
 ]
 
 # ─── Persistence Config ──────────────────────────────────────────────────────────
@@ -79,11 +143,11 @@ TEAMS_FILE = os.path.join(os.path.dirname(__file__), "my_teams.json")
 FOOTBALL_IMG = os.path.join(os.path.dirname(__file__), "images", "Football.png")
 
 DEFAULT_TEAMS = [
-    ("basketball/nba",           "nyk"),
-    ("baseball/mlb",             "nyy"),
-    ("hockey/nhl",               "nj"),
-    ("football/nfl",             "pit"),
-    ("football/college-football","psu"),
+    ("basketball/nba", "nyk"),
+    ("baseball/mlb", "nyy"),
+    ("hockey/nhl", "nj"),
+    ("football/nfl", "pit"),
+    ("football/college-football", "psu"),
 ]
 
 
@@ -113,13 +177,13 @@ MY_TEAMS = load_my_teams()
 # ─── ESPN Helpers ────────────────────────────────────────────────────────────────
 
 session = requests.Session()
-clock   = pygame.time.Clock()
+clock = pygame.time.Clock()
 
 TEAM_IDS = {}
 
-logo_cache      = {}
+logo_cache = {}
 team_logo_cache = {}
-_teams_cache    = {}
+_teams_cache = {}
 
 FALLBACK_LOGO = "https://img.icons8.com/color/1200/espn.jpg"
 
@@ -130,6 +194,7 @@ FALLBACK_LOGO = "https://img.icons8.com/color/1200/espn.jpg"
 # last year's (already-finished) schedule instead of the upcoming one. We
 # pass an explicit ?season= to sidestep that.
 SEASON_YEAR_LEAGUES = {"football/college-football", "football/nfl", "soccer/eng.1", "soccer/usa.1"}
+
 
 def season_year_for(league):
     now = datetime.datetime.now(ET)
@@ -157,13 +222,13 @@ def fetch_team_info(league, abbr):
         return team_info_cache[key]
     url = f"https://site.api.espn.com/apis/site/v2/sports/{league}/teams/{abbr}"
     try:
-        data  = session.get(url, timeout=5).json()
-        t     = data.get("team", {})
+        data = session.get(url, timeout=5).json()
+        t = data.get("team", {})
         logos = t.get("logos", [])
         info = {
-            "id":          t.get("id"),
+            "id": t.get("id"),
             "displayName": t.get("displayName", abbr.upper()),
-            "logo":        logos[0].get("href") if logos else FALLBACK_LOGO,
+            "logo": logos[0].get("href") if logos else FALLBACK_LOGO,
         }
     except Exception as e:
         print(f"fetch_team_info failed for {league}/{abbr}:", e)
@@ -214,19 +279,19 @@ def fetch_league_teams(league):
         else:
             url = f"https://site.api.espn.com/apis/site/v2/sports/{league}/teams?limit=500"
 
-        data  = session.get(url, timeout=8).json()
+        data = session.get(url, timeout=8).json()
         items = data.get("sports", [{}])[0].get("leagues", [{}])[0].get("teams", [])
 
         teams = []
         for item in items:
-            t     = item.get("team", {})
+            t = item.get("team", {})
             logos = t.get("logos", [])
-            logo  = logos[0].get("href", FALLBACK_LOGO) if logos else FALLBACK_LOGO
+            logo = logos[0].get("href", FALLBACK_LOGO) if logos else FALLBACK_LOGO
             teams.append({
-                "id":          t.get("id"),
+                "id": t.get("id"),
                 "abbreviation": t.get("abbreviation", "").lower(),
                 "displayName": t.get("displayName", ""),
-                "logo":        logo,
+                "logo": logo,
             })
 
         teams.sort(key=lambda x: x["displayName"])
@@ -247,8 +312,8 @@ def get_cached_logo(url, size):
 def load_oled_logo(url, size):
     try:
         response = session.get(url, timeout=5)
-        img_str  = BytesIO(response.content)
-        image    = pygame.image.load(img_str).convert_alpha()
+        img_str = BytesIO(response.content)
+        image = pygame.image.load(img_str).convert_alpha()
         return pygame.transform.smoothscale(image, (size, size))
     except Exception as e:
         print(f"Logo fail: {e}")
@@ -262,10 +327,10 @@ def fetch_team_logo(team, sport_league):
     if key in team_logo_cache:
         return team_logo_cache[key]
     try:
-        url   = f"https://site.api.espn.com/apis/site/v2/sports/{sport_league}/teams/{team}"
+        url = f"https://site.api.espn.com/apis/site/v2/sports/{sport_league}/teams/{team}"
         tdata = session.get(url, timeout=5).json()
         logos = tdata.get("team", {}).get("logos", [])
-        logo  = logos[0].get("href") if logos else FALLBACK_LOGO
+        logo = logos[0].get("href") if logos else FALLBACK_LOGO
         team_logo_cache[key] = logo
         return logo
     except Exception as e:
@@ -276,7 +341,7 @@ def fetch_team_logo(team, sport_league):
 def fetch_team_record(team_id, sport_league):
     url = f"https://site.api.espn.com/apis/site/v2/sports/{sport_league}/teams/{team_id}"
     try:
-        data    = session.get(url, timeout=5).json()
+        data = session.get(url, timeout=5).json()
         records = data.get("team", {}).get("record", {}).get("items", [])
         return next((r["summary"] for r in records if r.get("type") in ("total", "overall")), None)
     except Exception as e:
@@ -292,12 +357,12 @@ def get_center(a, b):
 
 def get_next_event(events):
     upcoming = []
-    now      = datetime.datetime.now(datetime.UTC)
+    now = datetime.datetime.now(datetime.UTC)
     for e in events:
         try:
-            comp  = e.get("competitions", [{}])[0]
+            comp = e.get("competitions", [{}])[0]
             state = comp.get("status", {}).get("type", {}).get("state")
-            dt    = datetime.datetime.fromisoformat(e["date"].replace("Z", "+00:00"))
+            dt = datetime.datetime.fromisoformat(e["date"].replace("Z", "+00:00"))
             if state == "in":
                 return e
             if dt > now:
@@ -321,9 +386,9 @@ def get_last_finished_event(events):
     now = datetime.datetime.now(datetime.UTC)
     for e in events:
         try:
-            comp  = e.get("competitions", [{}])[0]
+            comp = e.get("competitions", [{}])[0]
             state = comp.get("status", {}).get("type", {}).get("state")
-            dt    = datetime.datetime.fromisoformat(e["date"].replace("Z", "+00:00"))
+            dt = datetime.datetime.fromisoformat(e["date"].replace("Z", "+00:00"))
             if state == "post" and dt < now:
                 finished.append((dt, e))
         except Exception as ex:
@@ -387,33 +452,33 @@ def get_team_game(sport_league, team_id):
         logo_url = fetch_team_logo(team_id, sport_league)
 
         last_event = get_last_finished_event(events)
-        last_game  = None
+        last_game = None
         if last_event:
             last_game = _build_last_game_dict(last_event, sport_league)
 
         if not event:
             return {
-                "title":        team_info.get("displayName"),
-                "subtitle":     "No upcoming games",
+                "title": team_info.get("displayName"),
+                "subtitle": "No upcoming games",
                 "home_logo_url": logo_url,
                 "away_logo_url": None,
-                "state":        None,
-                "league":       sport_league,
-                "team_id":      team_id,
-                "home_record":  None,
-                "away_record":  None,
-                "last_game":    last_game,
+                "state": None,
+                "league": sport_league,
+                "team_id": team_id,
+                "home_record": None,
+                "away_record": None,
+                "last_game": last_game,
             }
 
-        comp        = event["competitions"][0]
+        comp = event["competitions"][0]
         comp_status = comp.get("status", {}).get("type", {})
-        state       = comp_status.get("state")
+        state = comp_status.get("state")
 
         competitors = comp["competitors"]
-        home_comp   = next((c for c in competitors if c.get("homeAway") == "home"), competitors[0])
-        away_comp   = next((c for c in competitors if c.get("homeAway") == "away"), competitors[1])
-        home_team   = home_comp["team"]["id"]
-        away_team   = away_comp["team"]["id"]
+        home_comp = next((c for c in competitors if c.get("homeAway") == "home"), competitors[0])
+        away_comp = next((c for c in competitors if c.get("homeAway") == "away"), competitors[1])
+        home_team = home_comp["team"]["id"]
+        away_team = away_comp["team"]["id"]
 
         title = event.get("name", team_info.get("displayName", "Unknown Game"))
         short = (comp_status.get("shortDetail") or comp_status.get("detail") or "TBD")
@@ -421,23 +486,23 @@ def get_team_game(sport_league, team_id):
         if comp_status.get("state") == "pre":
             raw_date = event.get("date", "")
             try:
-                dt_utc  = datetime.datetime.fromisoformat(raw_date.replace("Z", "+00:00"))
+                dt_utc = datetime.datetime.fromisoformat(raw_date.replace("Z", "+00:00"))
                 dt_local = dt_utc.astimezone(ET)
-                short   = dt_local.strftime("%A %B %d, %I:%M %p")
+                short = dt_local.strftime("%A %B %d, %I:%M %p")
             except Exception as e:
                 print(f"get_team_game: could not parse date {raw_date!r} for {sport_league}/{team_id}:", e)
 
         return {
-            "title":         title,
-            "subtitle":      short,
+            "title": title,
+            "subtitle": short,
             "home_logo_url": fetch_team_logo(home_team, sport_league),
             "away_logo_url": fetch_team_logo(away_team, sport_league),
-            "state":         state,
-            "league":        sport_league,
-            "team_id":       team_id,
-            "home_record":   fetch_team_record(home_team, sport_league),
-            "away_record":   fetch_team_record(away_team, sport_league),
-            "last_game":     last_game,
+            "state": state,
+            "league": sport_league,
+            "team_id": team_id,
+            "home_record": fetch_team_record(home_team, sport_league),
+            "away_record": fetch_team_record(away_team, sport_league),
+            "last_game": last_game,
         }
     except Exception as e:
         print(f"Team fetch failed for {sport_league}/{team_id}:", e)
@@ -455,10 +520,10 @@ def _build_last_game_dict(event, sport_league):
     comparing scores, so OT/SO results are handled correctly.
     """
     try:
-        comp        = event["competitions"][0]
+        comp = event["competitions"][0]
         competitors = comp["competitors"]
-        home_comp   = next((c for c in competitors if c.get("homeAway") == "home"), competitors[0])
-        away_comp   = next((c for c in competitors if c.get("homeAway") == "away"), competitors[1])
+        home_comp = next((c for c in competitors if c.get("homeAway") == "home"), competitors[0])
+        away_comp = next((c for c in competitors if c.get("homeAway") == "away"), competitors[1])
 
         # ESPN wraps the score in a dict post-game: {"displayValue": "4", "value": 4.0}
         # Fall back to a plain string/int for any legacy paths that return it directly.
@@ -495,7 +560,7 @@ def _build_last_game_dict(event, sport_league):
 
         raw_date = event.get("date", "")
         try:
-            dt_utc   = datetime.datetime.fromisoformat(raw_date.replace("Z", "+00:00"))
+            dt_utc = datetime.datetime.fromisoformat(raw_date.replace("Z", "+00:00"))
             dt_local = dt_utc.astimezone(ET)
             date_str = dt_local.strftime("%b %d, %Y")
         except Exception as e:
@@ -503,19 +568,19 @@ def _build_last_game_dict(event, sport_league):
             date_str = ""
 
         return {
-            "title":          event.get("name", ""),
-            "date_str":       date_str,
-            "status_detail":  status_detail,
-            "away_abbr":      away_comp["team"].get("abbreviation", ""),
-            "home_abbr":      home_comp["team"].get("abbreviation", ""),
-            "away_logo_url":  fetch_team_logo(away_comp["team"]["id"], sport_league),
-            "home_logo_url":  fetch_team_logo(home_comp["team"]["id"], sport_league),
-            "away_score":     away_score,
-            "home_score":     home_score,
-            "home_won":       home_won,
+            "title": event.get("name", ""),
+            "date_str": date_str,
+            "status_detail": status_detail,
+            "away_abbr": away_comp["team"].get("abbreviation", ""),
+            "home_abbr": home_comp["team"].get("abbreviation", ""),
+            "away_logo_url": fetch_team_logo(away_comp["team"]["id"], sport_league),
+            "home_logo_url": fetch_team_logo(home_comp["team"]["id"], sport_league),
+            "away_score": away_score,
+            "home_score": home_score,
+            "home_won": home_won,
             # Raw data kept so final_display() can call sport-specific renderers
-            "_event":         event,
-            "_league":        sport_league,
+            "_event": event,
+            "_league": sport_league,
         }
     except Exception as e:
         print("Could not build last game dict:", e)
@@ -525,24 +590,24 @@ def _build_last_game_dict(event, sport_league):
 def get_mma_fight():
     url = "https://site.api.espn.com/apis/site/v2/sports/mma/ufc/scoreboard"
     try:
-        data   = session.get(url, timeout=5).json()
+        data = session.get(url, timeout=5).json()
         events = data.get("events", [])
         if not events:
             return None
-        event    = events[0]
+        event = events[0]
         raw_date = event.get("date", "")
-        dt       = datetime.datetime.fromisoformat(raw_date.replace("Z", "+00:00"))
+        dt = datetime.datetime.fromisoformat(raw_date.replace("Z", "+00:00"))
         return {
-            "title":         event["name"],
-            "subtitle":      dt.strftime("%A %B %d, %I:%M %p"),
+            "title": event["name"],
+            "subtitle": dt.strftime("%A %B %d, %I:%M %p"),
             "home_logo_url": "https://a.espncdn.com/i/teamlogos/leagues/500/ufc.png",
             "away_logo_url": None,
-            "state":         None,
-            "league":        "UFC",
-            "team_id":       None,
-            "home_record":   None,
-            "away_record":   None,
-            "last_game":     None,
+            "state": None,
+            "league": "UFC",
+            "team_id": None,
+            "home_record": None,
+            "away_record": None,
+            "last_game": None,
         }
     except Exception as e:
         print("Could not find UFC fight", e)
@@ -564,7 +629,7 @@ def fetch_all_data():
 def refresh_data():
     global sports_data, last_data_update
     if time.time() - last_data_update > DATA_REFRESH:
-        sports_data      = fetch_all_data()
+        sports_data = fetch_all_data()
         last_data_update = time.time()
 
 
@@ -778,20 +843,20 @@ def api_get_teams():
         teams = fetch_league_teams(league)
         info = next((t for t in teams if t["abbreviation"] == abbr.lower() or str(t.get("id")) == str(abbr)), None)
         result.append({
-            "league":      league,
-            "leagueName":  LEAGUE_LABELS.get(league, league),
+            "league": league,
+            "leagueName": LEAGUE_LABELS.get(league, league),
             "abbreviation": abbr,
             "displayName": info["displayName"] if info else abbr.upper(),
-            "logo":        info["logo"] if info else FALLBACK_LOGO,
+            "logo": info["logo"] if info else FALLBACK_LOGO,
         })
     return jsonify({"teams": result})
 
 
 @flask_app.route("/api/teams", methods=["POST"])
 def api_add_team():
-    body   = request.get_json() or {}
+    body = request.get_json() or {}
     league = body.get("league", "").strip()
-    abbr   = body.get("abbreviation", "").strip().lower()
+    abbr = body.get("abbreviation", "").strip().lower()
     if not league or not abbr:
         return jsonify({"ok": False, "error": "Missing league or abbreviation"}), 400
     teams = fetch_league_teams(league)
@@ -839,7 +904,7 @@ def get_nhl_sog(game_id):
     url = f"https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/summary?event={game_id}"
     try:
         data = session.get(url, timeout=5).json()
-        sog  = {"home": 0, "away": 0}
+        sog = {"home": 0, "away": 0}
         for team in data.get("boxscore", {}).get("teams", []):
             ha = team.get("homeAway")
             for stat in team.get("statistics", []):
@@ -864,7 +929,7 @@ def render_hockey(screen, game, home, away, league):
     pt_surf = sub_font.render(pt, True, (255, 255, 255))
     screen.blit(pt_surf, (get_center(WIDTH, pt_surf.get_width()), get_center(HEIGHT, pt_surf.get_height())))
 
-    sog     = get_nhl_sog(game["id"])
+    sog = get_nhl_sog(game["id"])
     sog_surf = sub_font.render(f"SOG: {sog['away']}-{sog['home']}", True, (255, 255, 255))
     screen.blit(sog_surf, (get_center(WIDTH, sog_surf.get_width()), get_center(4 * HEIGHT / 3, sog_surf.get_height())))
 
@@ -872,10 +937,10 @@ def render_hockey(screen, game, home, away, league):
 def get_nba_bonus(game_id):
     url = f"https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event={game_id}"
     try:
-        data  = session.get(url, timeout=5).json()
+        data = session.get(url, timeout=5).json()
         bonus = {"home": False, "away": False}
         for comp in data.get("header", {}).get("competitions", [{}])[0].get("competitors", []):
-            ha    = comp.get("homeAway")
+            ha = comp.get("homeAway")
             state = comp.get("fouls", {}).get("bonusState", "")
             if state in ("BONUS", "DOUBLE"):
                 bonus[ha] = True
@@ -890,7 +955,7 @@ def render_basketball(screen, game, home, away, league):
     screen.blit(league_logo, (get_center(WIDTH, league_logo.get_width()), 0))
 
     game_id = game["id"]
-    bonus   = get_nba_bonus(game_id)
+    bonus = get_nba_bonus(game_id)
 
     bonus_surf = sub_font.render("BONUS", True, (255, 255, 255))
     bx = get_center(WIDTH, bonus_surf.get_width())
@@ -900,7 +965,7 @@ def render_basketball(screen, game, home, away, league):
     tri_h = bonus_surf.get_height()
     tri_w = int(tri_h / math.tan(math.radians(45)))
     at, ab = by, by + tri_h
-    am     = by + tri_h / 2
+    am = by + tri_h / 2
 
     if bonus["away"]:
         ax_r = int(bx - 10)
@@ -929,22 +994,22 @@ def render_baseball(screen, game, home, away, league):
     x_mid = WIDTH / 2
     y_mid = HEIGHT / 2
 
-    sit     = game.get("competitions", [{}])[0].get("situation", {})
-    balls   = sit.get("balls",   0)
+    sit = game.get("competitions", [{}])[0].get("situation", {})
+    balls = sit.get("balls", 0)
     strikes = sit.get("strikes", 0)
-    outs    = sit.get("outs",    0)
-    r1      = sit.get("onFirst",  False)
-    r2      = sit.get("onSecond", False)
-    r3      = sit.get("onThird",  False)
+    outs = sit.get("outs", 0)
+    r1 = sit.get("onFirst", False)
+    r2 = sit.get("onSecond", False)
+    r3 = sit.get("onThird", False)
 
-    inning_str      = game["status"]["type"]["shortDetail"]
+    inning_str = game["status"]["type"]["shortDetail"]
     top_bot, inning = inning_str.split(" ", 1)
 
     radius = 50
-    gap    = 10
+    gap = 10
     base_y = 3 * HEIGHT / 10
     draw_diamond(screen, (255, 255, 255), x_mid + radius + gap, base_y, radius, 0 if r1 else 1)
-    draw_diamond(screen, (255, 255, 255), x_mid,                base_y - radius - gap, radius, 0 if r2 else 1)
+    draw_diamond(screen, (255, 255, 255), x_mid, base_y - radius - gap, radius, 0 if r2 else 1)
     draw_diamond(screen, (255, 255, 255), x_mid - radius - gap, base_y, radius, 0 if r3 else 1)
 
     for i in range(3):
@@ -952,16 +1017,16 @@ def render_baseball(screen, game, home, away, league):
                            (int(x_mid - 45 + i * 45), int(y_mid)), 15, 0 if i < outs else 1)
 
     in_surf = sub_font.render(inning, True, (255, 255, 255))
-    is_x    = get_center(WIDTH, in_surf.get_width())
-    is_y    = 3 * HEIGHT / 5
+    is_x = get_center(WIDTH, in_surf.get_width())
+    is_y = 3 * HEIGHT / 5
     screen.blit(in_surf, (is_x, is_y))
 
-    ty  = is_y
+    ty = is_y
     by2 = is_y + in_surf.get_height()
-    tw  = in_surf.get_height() / math.tan(math.radians(45))
-    xr  = is_x - 10
-    xl  = xr - tw
-    xm  = xr - tw / 2
+    tw = in_surf.get_height() / math.tan(math.radians(45))
+    xr = is_x - 10
+    xl = xr - tw
+    xm = xr - tw / 2
     if top_bot == "Bot":
         pts = [(xr, ty), (xl, ty), (xm, by2)]
     else:
@@ -995,58 +1060,57 @@ def render_football(screen, game, home, away, league):
     period = status.get("period", 0)
     clock = status.get("displayClock", "")
 
-    quarter_map = {
-        1: "1st",
-        2: "2nd",
-        3: "3rd",
-        4: "4th",
-        5: "OT"
-    }
+    quarter_map = {1: "1st", 2: "2nd", 3: "3rd", 4: "4th", 5: "OT"}
     quarter = quarter_map.get(period, f"Q{period}")
 
-    quarter_time = f"{quarter} {clock}" if clock else quarter # "3rd 15:00"
-    down_distance = situation.get("downDistanceText", "")     # "1st & 10"
-    possession = situation.get("possession", "")              # "LAR"
-    yard_line = situation.get("yardLine", None)               # "20"
-    ball_spot = ""
-    if possession and yard_line is not None:
-        ball_spot = f"{possession} {yard_line}"               # "LAR 20"
+    quarter_time = f"{quarter} {clock}" if clock else quarter
+    down_distance = situation.get("downDistanceText", "")  # "1st & 10 at DEN 34"
+    possession_id = str(situation.get("possession", ""))  # team ID as string, e.g. "7"
+    is_red_zone = situation.get("isRedZone", False)  # ESPN already tells us this directly
 
+    # No down/distance usually means there's no live play situation — e.g. halftime,
+    # end of quarter, pregame, or between plays before the next snap is spotted.
+    if not down_distance:
+        status_desc = status.get("type", {}).get("description") or status.get("type", {}).get("shortDetail") or ""
+        down_distance = status_desc if status_desc else ""
+
+    red_zone_color = (255, 60, 60)
+    normal_color = (255, 255, 255)
+    dd_color = red_zone_color if is_red_zone else normal_color
 
     quarter_time_surf = title_font.render(quarter_time, True, (255, 255, 255))
     screen.blit(quarter_time_surf,
                 (get_center(WIDTH, quarter_time_surf.get_width()), get_center(HEIGHT, quarter_time_surf.get_height())))
 
-    if possession == away:
+    # Only draw the ball if we actually know who has it
+    if possession_id and possession_id == str(away["team"]["id"]):
         screen.blit(football, (1 * WIDTH / 3, get_center(HEIGHT, football.get_height())))
-    else:
+    elif possession_id and possession_id == str(home["team"]["id"]):
         screen.blit(football, (18 * WIDTH / 29, get_center(HEIGHT, football.get_height())))
 
-    down_distance_surf = sub_font.render(down_distance, True, (255, 255, 255))
+    down_distance_surf = sub_font.render(down_distance, True, dd_color)
     screen.blit(down_distance_surf, (get_center(WIDTH, down_distance_surf.get_width()),
                                      get_center(4 * HEIGHT / 3, down_distance_surf.get_height())))
 
-    ball_spot_surf = sub_font.render(ball_spot, True, (255, 255, 255))
-    screen.blit(ball_spot_surf, (get_center(WIDTH, ball_spot_surf.get_width()),
-                                 get_center(5 * HEIGHT / 3, ball_spot_surf.get_height())))
 
 def render_soccer(screen, game, home, away, league):
     try:
-        league_logo = get_cached_logo(league_logos[league],200)
+        league_logo = get_cached_logo(league_logos[league], 200)
     except Exception as e:
         print(f"render_soccer: league logo lookup failed for {league}:", e)
-        league_logo=get_cached_logo(FALLBACK_LOGO,200)
+        league_logo = get_cached_logo(FALLBACK_LOGO, 200)
     screen.blit(league_logo, (get_center(WIDTH, league_logo.get_width()), 0))
 
-    detail=game["status"]["type"]["description"]
-    time=game["status"]["displayClock"]
-
+    detail = game["status"]["type"]["description"]
+    time = game["status"]["displayClock"]
 
     time_surf = title_font.render(time, True, (255, 255, 255))
     screen.blit(time_surf, (get_center(WIDTH, time_surf.get_width()), get_center(HEIGHT, time_surf.get_height())))
 
     detail_surf = sub_font.render(detail, True, (255, 255, 255))
-    screen.blit(detail_surf, (get_center(WIDTH, detail_surf.get_width()), get_center(4 * HEIGHT / 3, detail_surf.get_height())))
+    screen.blit(detail_surf,
+                (get_center(WIDTH, detail_surf.get_width()), get_center(4 * HEIGHT / 3, detail_surf.get_height())))
+
 
 # ─── Last Game Display ───────────────────────────────────────────────────────────
 
@@ -1062,10 +1126,11 @@ def final_display(last_game):
 
     Winning team's score and abbreviation are highlighted in yellow.
     """
+    global dragging_slider
     back_button = pygame.Rect(0, 0, 0, 0)
     pad, border = 6, 2
 
-    event  = last_game["_event"]
+    event = last_game["_event"]
     league = last_game["_league"]
 
     comp = event.get("competitions", [{}])[0]
@@ -1083,9 +1148,9 @@ def final_display(last_game):
     home_logo_url = fetch_team_logo(home["team"]["id"], league)
 
     # Winner colours: gold for the winner, dim white for the loser
-    home_won  = last_game.get("home_won")
-    away_col  = (255, 220, 0) if home_won is False else (220, 220, 220)
-    home_col  = (255, 220, 0) if home_won is True  else (220, 220, 220)
+    home_won = last_game.get("home_won")
+    away_col = (255, 220, 0) if home_won is False else (220, 220, 220)
+    home_col = (255, 220, 0) if home_won is True else (220, 220, 220)
 
     # Score strings — already extracted correctly by _build_last_game_dict
     away_score_str = last_game["away_score"]
@@ -1097,60 +1162,85 @@ def final_display(last_game):
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit(); exit()
+                pygame.quit();
+                exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                check_exit(event.pos)
+                pos = pygame.mouse.get_pos()
+
+                # Checks if exit or brightness buttons were clicked
+                check_exit(pos)
+                check_brightness_zone(pos)
+
+                # If slider is visible and user clicked inside it → start dragging
+                if show_slider and slider_rect.collidepoint(pos):
+                    dragging_slider = True
+                    handle_brightness_slider(pos)
+
                 if back_button.collidepoint(event.pos):
                     pygame.event.clear()
                     return
 
+            # Stop dragging
+            if event.type == pygame.MOUSEBUTTONUP:
+                dragging_slider = False
+
+            # User is using brightness slider
+            if event.type == pygame.MOUSEMOTION:
+                if dragging_slider:
+                    pos = pygame.mouse.get_pos()
+                    handle_brightness_slider(pos)
+
         screen.fill((0, 0, 0))
+
+        if show_slider:
+            draw_brightness_slider()
 
         # ── Away team — left third (identical geometry to live_display) ──
         al_surf = get_cached_logo(away_logo_url, 250)
-        al_y    = get_center(HEIGHT, al_surf.get_height())
-        al_x    = get_center(WIDTH / 3, al_surf.get_width())
+        al_y = get_center(HEIGHT, al_surf.get_height())
+        al_x = get_center(WIDTH / 3, al_surf.get_width())
         screen.blit(al_surf, (al_x, al_y))
         aa_surf = title_font.render(away["team"]["abbreviation"], True, away_col)
         screen.blit(aa_surf, (get_center(WIDTH / 3, aa_surf.get_width()),
-                               (HEIGHT + al_surf.get_height()) / 2))
+                              (HEIGHT + al_surf.get_height()) / 2))
 
         # ── Home team — right third ──
         hl_surf = get_cached_logo(home_logo_url, 250)
-        hl_x    = al_x + 2 * WIDTH / 3
+        hl_x = al_x + 2 * WIDTH / 3
         screen.blit(hl_surf, (hl_x, al_y))
         ha_surf = title_font.render(home["team"]["abbreviation"], True, home_col)
         screen.blit(ha_surf, (get_center(WIDTH / 3, ha_surf.get_width()) + 2 * WIDTH / 3,
-                               (HEIGHT + hl_surf.get_height()) / 2))
+                              (HEIGHT + hl_surf.get_height()) / 2))
 
         # ── Final scores above each logo ──
         as_surf = score_font.render(away_score_str, True, away_col)
         screen.blit(as_surf, (get_center(WIDTH / 3, as_surf.get_width()),
-                               al_y - as_surf.get_height() - 10))
+                              al_y - as_surf.get_height() - 10))
         hs_surf = score_font.render(home_score_str, True, home_col)
         screen.blit(hs_surf, (get_center(WIDTH / 3, hs_surf.get_width()) + 2 * WIDTH / 3,
-                               al_y - hs_surf.get_height() - 10))
+                              al_y - hs_surf.get_height() - 10))
 
         # ── FINAL / FINAL/OT label centred (no live renderer — status strings are
         #    in live format only and situation blocks are absent post-game) ──
         st_surf = sub_font.render(status_label, True, (180, 180, 180))
         screen.blit(st_surf, (get_center(WIDTH, st_surf.get_width()),
-                               get_center(HEIGHT, st_surf.get_height())))
+                              get_center(HEIGHT, st_surf.get_height())))
 
         # ── Date line below the status label ──
         dt_surf = small_font.render(last_game["date_str"], True, (120, 120, 120))
         screen.blit(dt_surf, (get_center(WIDTH, dt_surf.get_width()),
-                               get_center(HEIGHT, st_surf.get_height()) + st_surf.get_height() + 4))
+                              get_center(HEIGHT, st_surf.get_height()) + st_surf.get_height() + 4))
 
         # ── BACK button — bottom-left ──
         bk_s = sub_font.render("CYCLE", True, (255, 255, 255))
-        bx   = 0
-        by   = HEIGHT - (bk_s.get_height() + pad * 2 + border)
+        bx = 0
+        by = HEIGHT - (bk_s.get_height() + pad * 2 + border)
         back_button = pygame.Rect(bx, by, bk_s.get_width() + pad * 2, bk_s.get_height() + pad * 2)
         pygame.draw.rect(screen, (0, 0, 0), back_button)
         pygame.draw.rect(screen, (255, 255, 255), back_button, border)
         screen.blit(bk_s, (bx + pad, by + pad))
 
+        update_slider_visibility()
         pygame.display.update()
         clock.tick(30)
 
@@ -1167,26 +1257,47 @@ def live_display(league, extra_renderer=None):
     Resilient to transient ESPN fetch/parse failures: a failed poll logs
     and retries rather than ejecting back to the cycle screen.
     """
-    global locked
-    cycle_button     = pygame.Rect(0, 0, 0, 0)
+    global locked, dragging_slider
+    cycle_button = pygame.Rect(0, 0, 0, 0)
     next_game_button = pygame.Rect(0, 0, 0, 0)
     game_idx = 0
-    watched_game_id = None   # id of the game currently on screen, tracked across polls
-    games = []                # initialized here so button hit-testing is safe even if the first poll fails
+    watched_game_id = None  # id of the game currently on screen, tracked across polls
+    games = []  # initialized here so button hit-testing is safe even if the first poll fails
 
     while True:
         # ── Input handling runs every iteration, regardless of fetch success ──
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit(); exit()
+                pygame.quit();
+                exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                check_exit(event.pos)
+                pos = pygame.mouse.get_pos()
+
+                # Checks if exit or brightness buttons were clicked
+                check_exit(pos)
+                check_brightness_zone(pos)
+
+                # If slider is visible and user clicked inside it → start dragging
+                if show_slider and slider_rect.collidepoint(pos):
+                    dragging_slider = True
+                    handle_brightness_slider(pos)
+
                 if cycle_button.collidepoint(event.pos):
                     locked = False
                     pygame.event.clear()
                     return
                 if next_game_button.collidepoint(event.pos) and games:
                     game_idx = (game_idx + 1) % len(games)
+
+            # Stop dragging
+            if event.type == pygame.MOUSEBUTTONUP:
+                dragging_slider = False
+
+            # User is using brightness slider
+            if event.type == pygame.MOUSEMOTION:
+                if dragging_slider:
+                    pos = pygame.mouse.get_pos()
+                    handle_brightness_slider(pos)
 
         # ── Fetch: isolated so a network hiccup doesn't end the session ──
         scores_url = f"https://site.api.espn.com/apis/site/v2/sports/{league}/scoreboard"
@@ -1242,9 +1353,9 @@ def live_display(league, extra_renderer=None):
                 return
 
             game_idx = game_idx % len(games)
-            game     = games[game_idx]
+            game = games[game_idx]
             watched_game_id = game.get("id")
-            comp     = game["competitions"][0]
+            comp = game["competitions"][0]
             home = away = None
             for t in comp["competitors"]:
                 if t["homeAway"] == "home":
@@ -1253,16 +1364,18 @@ def live_display(league, extra_renderer=None):
                     away = t
 
             screen.fill((0, 0, 0))
+            if show_slider:
+                draw_brightness_slider()
 
             al_surf = get_cached_logo(away["team"]["logo"], 250)
-            al_y    = get_center(HEIGHT, al_surf.get_height())
-            al_x    = get_center(WIDTH / 3, al_surf.get_width())
+            al_y = get_center(HEIGHT, al_surf.get_height())
+            al_x = get_center(WIDTH / 3, al_surf.get_width())
             screen.blit(al_surf, (al_x, al_y))
             aa_surf = title_font.render(away["team"]["abbreviation"], True, (255, 255, 255))
             screen.blit(aa_surf, (get_center(WIDTH / 3, aa_surf.get_width()), (HEIGHT + al_surf.get_height()) / 2))
 
             hl_surf = get_cached_logo(home["team"]["logo"], 250)
-            hl_x    = al_x + 2 * WIDTH / 3
+            hl_x = al_x + 2 * WIDTH / 3
             screen.blit(hl_surf, (hl_x, al_y))
             ha_surf = title_font.render(home["team"]["abbreviation"], True, (255, 255, 255))
             screen.blit(ha_surf, (get_center(WIDTH / 3, ha_surf.get_width()) + 2 * WIDTH / 3,
@@ -1287,8 +1400,8 @@ def live_display(league, extra_renderer=None):
 
             if len(games) > 1:
                 nx_s = sub_font.render(f"NEXT ({game_idx + 1}/{len(games)})", True, (255, 255, 255))
-                nx   = WIDTH - (nx_s.get_width() + 2 * pad + border)
-                ny   = HEIGHT - (nx_s.get_height() + pad * 2 + border)
+                nx = WIDTH - (nx_s.get_width() + 2 * pad + border)
+                ny = HEIGHT - (nx_s.get_height() + pad * 2 + border)
                 next_game_button = pygame.Rect(nx, ny, nx_s.get_width() + pad * 2, nx_s.get_height() + pad * 2)
                 pygame.draw.rect(screen, (0, 0, 0), next_game_button)
                 pygame.draw.rect(screen, (255, 255, 255), next_game_button, border)
@@ -1296,6 +1409,7 @@ def live_display(league, extra_renderer=None):
             else:
                 next_game_button = pygame.Rect(0, 0, 0, 0)
 
+            update_slider_visibility()
             pygame.display.update()
             clock.tick(1 / LIVE_DATA_REFRESH)
 
@@ -1308,17 +1422,17 @@ def live_display(league, extra_renderer=None):
 # ─── Main Cycle ──────────────────────────────────────────────────────────────────
 
 def cycle():
-    global locked
-    live_button  = pygame.Rect(0, 0, 0, 0)
-    lock_button  = pygame.Rect(0, 0, 0, 0)
-    last_button  = pygame.Rect(0, 0, 0, 0)   # "LAST" button — shown only when a finished game exists
-    left_button  = pygame.Rect(0, 0, 0, 0)
+    global locked, dragging_slider
+    live_button = pygame.Rect(0, 0, 0, 0)
+    lock_button = pygame.Rect(0, 0, 0, 0)
+    last_button = pygame.Rect(0, 0, 0, 0)  # "LAST" button — shown only when a finished game exists
+    left_button = pygame.Rect(0, 0, 0, 0)
     right_button = pygame.Rect(0, 0, 0, 0)
 
-    current_idx     = 0
-    last_rotation   = time.time()
-    ROTATION_SPEED  = 5
-    scroll_x        = 0
+    current_idx = 0
+    last_rotation = time.time()
+    ROTATION_SPEED = 5
+    scroll_x = 0
     last_known_state = None
 
     while True:
@@ -1331,22 +1445,33 @@ def cycle():
             continue
 
         if time.time() - last_rotation > ROTATION_SPEED and not locked:
-            current_idx      = (current_idx + 1) % len(sports_data)
-            scroll_x         = 0
-            last_rotation    = time.time()
+            current_idx = (current_idx + 1) % len(sports_data)
+            scroll_x = 0
+            last_rotation = time.time()
             last_known_state = None
 
-        item          = sports_data[current_idx]
-        league        = item["league"]
+        item = sports_data[current_idx]
+        league = item["league"]
         current_state = item["state"]
-        last_game     = item.get("last_game")   # None for UFC or teams with no completed games
+        last_game = item.get("last_game")  # None for UFC or teams with no completed games
 
         # ── Input handling ──
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit(); exit()
+                pygame.quit();
+                exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                check_exit(event.pos)
+                pos = pygame.mouse.get_pos()
+
+                # Checks if exit or brightness buttons were clicked
+                check_exit(pos)
+                check_brightness_zone(pos)
+
+                # If slider is visible and user clicked inside it → start dragging
+                if show_slider and slider_rect.collidepoint(pos):
+                    dragging_slider = True
+                    handle_brightness_slider(pos)
+
                 if live_button.collidepoint(event.pos):
                     locked = True
                     if league == "hockey/nhl":
@@ -1363,16 +1488,26 @@ def cycle():
                 if lock_button.collidepoint(event.pos):
                     locked = not locked
                 if last_button.collidepoint(event.pos) and last_game:
-                    final_display(last_game) # Enter the static final score screen
+                    final_display(last_game)  # Enter the static final score screen
                     last_rotation = time.time()
                 if left_button.collidepoint(event.pos):
-                    current_idx   = (current_idx - 1) % len(sports_data)
-                    scroll_x      = 0
+                    current_idx = (current_idx - 1) % len(sports_data)
+                    scroll_x = 0
                     last_rotation = time.time()
                 if right_button.collidepoint(event.pos):
-                    current_idx   = (current_idx + 1) % len(sports_data)
-                    scroll_x      = 0
+                    current_idx = (current_idx + 1) % len(sports_data)
+                    scroll_x = 0
                     last_rotation = time.time()
+
+            # Stop dragging
+            if event.type == pygame.MOUSEBUTTONUP:
+                dragging_slider = False
+
+            # User is using brightness slider
+            if event.type == pygame.MOUSEMOTION:
+                if dragging_slider:
+                    pos = pygame.mouse.get_pos()
+                    handle_brightness_slider(pos)
 
         if locked and last_known_state != "in" and current_state == "in":
             last_known_state = current_state
@@ -1390,17 +1525,20 @@ def cycle():
             continue
 
         last_known_state = current_state
-        screen.fill((5, 5, 5))
+        screen.fill((0, 0, 0))
 
-        pad    = 6
+        if show_slider:
+            draw_brightness_slider()
+
+        pad = 6
         border = 2
 
         # ── LIVE / LOCK button (bottom-left) ──
         if item["state"] == "in":
             lock_button = pygame.Rect(0, 0, 0, 0)
             lv = sub_font.render("LIVE", True, (255, 255, 255))
-            x  = 0
-            y  = HEIGHT - (lv.get_height() + pad * 2 + border)
+            x = 0
+            y = HEIGHT - (lv.get_height() + pad * 2 + border)
             live_button = pygame.Rect(x, y, lv.get_width() + pad * 2, lv.get_height() + pad * 2)
             pygame.draw.rect(screen, (0, 0, 0), live_button)
             pygame.draw.rect(screen, (255, 255, 255), live_button, border)
@@ -1408,9 +1546,9 @@ def cycle():
         else:
             live_button = pygame.Rect(0, 0, 0, 0)
             lbl = "UNLOCK" if locked else "LOCK"
-            lk  = sub_font.render(lbl, True, (255, 255, 255))
-            x   = 0
-            y   = HEIGHT - (lk.get_height() + pad * 2 + border)
+            lk = sub_font.render(lbl, True, (255, 255, 255))
+            x = 0
+            y = HEIGHT - (lk.get_height() + pad * 2 + border)
             lock_button = pygame.Rect(x, y, lk.get_width() + pad * 2, lk.get_height() + pad * 2)
             pygame.draw.rect(screen, (0, 0, 0), lock_button)
             pygame.draw.rect(screen, (255, 255, 255), lock_button, border)
@@ -1430,14 +1568,14 @@ def cycle():
             last_button = pygame.Rect(0, 0, 0, 0)
 
         # ── < > navigation buttons (bottom-right) ──
-        left_surf  = sub_font.render("<", True, (255, 255, 255))
+        left_surf = sub_font.render("<", True, (255, 255, 255))
         right_surf = sub_font.render(">", True, (255, 255, 255))
         right_button = pygame.Rect(WIDTH - (right_surf.get_width() + pad * 2 + border),
                                    HEIGHT - (right_surf.get_height() + pad * 2 + border),
                                    right_surf.get_width() + pad * 2, right_surf.get_height() + pad * 2)
-        left_button  = pygame.Rect(right_button.x - (left_surf.get_width() + pad * 2 + border) - 6,
-                                   right_button.y,
-                                   left_surf.get_width() + pad * 2, left_surf.get_height() + pad * 2)
+        left_button = pygame.Rect(right_button.x - (left_surf.get_width() + pad * 2 + border) - 6,
+                                  right_button.y,
+                                  left_surf.get_width() + pad * 2, left_surf.get_height() + pad * 2)
         for btn, surf in [(left_button, left_surf), (right_button, right_surf)]:
             pygame.draw.rect(screen, (0, 0, 0), btn)
             pygame.draw.rect(screen, (255, 255, 255), btn, border)
@@ -1467,27 +1605,28 @@ def cycle():
         h = HEIGHT + sub_surf.get_height() - 20
 
         if item["away_logo_url"] is None:
-            h+=100
+            h += 100
             ls = get_cached_logo(item["home_logo_url"], 350)
             screen.blit(ls, (get_center(WIDTH, ls.get_width()), get_center(h, ls.get_height())))
         else:
-            ls  = get_cached_logo(item["away_logo_url"], 250)
-            y0  = get_center(h, ls.get_height())
-            x0  = get_center(WIDTH / 2, ls.get_width())
+            ls = get_cached_logo(item["away_logo_url"], 250)
+            y0 = get_center(h, ls.get_height())
+            x0 = get_center(WIDTH / 2, ls.get_width())
             screen.blit(ls, (x0, y0))
 
-            ar  = title_font.render(item.get("away_record") or "0-0", True, (255, 255, 255))
+            ar = title_font.render(item.get("away_record") or "0-0", True, (255, 255, 255))
             rx0 = get_center(WIDTH / 2, ar.get_width())
-            ry0 = ((HEIGHT - ar.get_height()) - 2 * pad)-left_button.height
+            ry0 = ((HEIGHT - ar.get_height()) - 2 * pad) - left_button.height
             screen.blit(ar, (rx0, ry0))
 
             ls1 = get_cached_logo(item["home_logo_url"], 250)
             screen.blit(ls1, (x0 + WIDTH / 2, y0))
 
-            hr  = title_font.render(item.get("home_record") or "0-0", True, (255, 255, 255))
+            hr = title_font.render(item.get("home_record") or "0-0", True, (255, 255, 255))
             rx1 = rx0 + WIDTH / 2
             screen.blit(hr, (rx1, ry0))
 
+        update_slider_visibility()
         pygame.display.update()
         clock.tick(30)
 
@@ -1511,7 +1650,7 @@ def send_startup_notification():
     if not NTFY_TOPIC:
         print("NTFY_TOPIC not set — skipping startup notification")
         return
-    ip  = get_local_ip()
+    ip = get_local_ip()
     url = f"http://{ip}:5000"
     try:
         requests.post(
