@@ -81,7 +81,7 @@ def handle_brightness_slider(pos):
         brightness = max(0.1, min(brightness, 1.0))
 
         # Apply brightness (software method)
-        pygame.display.set_gamma(brightness)
+        apply_brightness(brightness)
 
         slider_last_touch = time.time()
 
@@ -100,6 +100,24 @@ def update_slider_visibility():
     global show_slider
     if show_slider and time.time() - slider_last_touch > 2:
         show_slider = False
+
+#Used for Hoysond 7" MIPI screen
+def apply_brightness(value):
+    # value is 0.0–1.0 from your slider
+    try:
+        # Read max brightness from driver
+        with open("/sys/class/backlight/10-0045/max_brightness", "r") as f:
+            max_b = int(f.read().strip())
+
+        # Scale slider value to hardware range
+        level = int(value * max_b)
+
+        # Write brightness
+        with open("/sys/class/backlight/10-0045/brightness", "w") as f:
+            f.write(str(level))
+
+    except Exception as e:
+        print("Brightness control failed:", e)
 
 
 # ─── Initialize ──────────────────────────────────────────────────────────────────────
